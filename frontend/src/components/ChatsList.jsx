@@ -8,9 +8,7 @@ function ChatsList() {
   const { getMyChatPartners, chats, isUsersLoading, setSelectedUser } = useChatStore();
   const { onlineUsers } = useAuthStore();
 
-  useEffect(() => {
-    getMyChatPartners();
-  }, [getMyChatPartners]);
+  useEffect(() => { getMyChatPartners(); }, [getMyChatPartners]);
 
   if (isUsersLoading) return <UsersLoadingSkeleton />;
   if (chats.length === 0) return <NoChatFound />;
@@ -18,23 +16,19 @@ function ChatsList() {
   return (
     <>
       {chats.map((chat) => (
-        <div
-          key={chat._id}
-          className="bg-cyan-500/10 p-4 rounded-lg cursor-pointer hover:bg-cyan-500/20 transition-colors"
-          onClick={() => setSelectedUser(chat)}
-        >
+        <div key={chat._id} className="glass-card p-3 cursor-pointer" onClick={() => setSelectedUser(chat)}>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="size-12 rounded-full overflow-hidden">
+              <div className="size-10 rounded-full overflow-hidden" style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06)' }}>
                 <img src={chat.profilePic || "/avatar.png"} alt={chat.fullName} className="w-full h-full object-cover" />
               </div>
-              {onlineUsers.includes(chat._id) && (
-                <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-gray-900" />
-              )}
+              {onlineUsers.includes(chat._id) && <span className="absolute bottom-0 right-0 online-dot" />}
             </div>
-            <div>
-              <h4 className="text-slate-200 font-medium truncate">{chat.fullName}</h4>
-              <p className="text-xs text-slate-400">{onlineUsers.includes(chat._id) ? "Online" : "Offline"}</p>
+            <div className="min-w-0 flex-1">
+              <h4 className="font-medium text-sm truncate" style={{ color: '#E9EDEF' }}>{chat.fullName}</h4>
+              <p className="text-xs" style={{ color: onlineUsers.includes(chat._id) ? '#00A884' : 'rgba(233,237,239,0.25)' }}>
+                {onlineUsers.includes(chat._id) ? "Online" : "Offline"}
+              </p>
             </div>
           </div>
         </div>

@@ -1,27 +1,135 @@
 @import "tailwindcss";
 @plugin "daisyui";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Base ── */
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── Color Tokens ── */
+:root {
+  --bg-primary: #111111;
+  --bg-surface: #1a1a1a;
+  --accent: #00A884;
+  --accent-light: #00C897;
+  --text-primary: #E9EDEF;
+  --text-secondary: rgba(233, 237, 239, 0.55);
+  --text-muted: rgba(233, 237, 239, 0.3);
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Animations ── */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+
+  50% {
+    opacity: 0.22;
+  }
+}
+
+/* ── Glass Surfaces ── */
+.glass-surface {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--border);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  transition: all 0.25s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Online Indicator ── */
+.online-dot {
+  @apply size-2.5 rounded-full;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(0, 168, 132, 0.5);
+}
+
+/* ── Auth Form Utilities ── */
 .input {
-  @apply w-full bg-slate-800/50 border border-slate-700 rounded-lg py-2 pl-10 pr-4 text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500 focus:border-transparent;
+  @apply w-full py-2.5 pl-10 pr-4 rounded-xl transition-all duration-200;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus {
+  outline: none;
+  border-color: rgba(0, 168, 132, 0.4);
+  box-shadow: 0 0 0 3px rgba(0, 168, 132, 0.1);
 }
 
 .auth-input-icon {
-  @apply absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 size-5;
+  @apply absolute left-3 top-1/2 -translate-y-1/2 size-5;
+  color: var(--text-muted);
 }
 
 .auth-input-label {
-  @apply block text-sm font-medium text-slate-300 mb-2;
+  @apply block text-sm font-medium mb-2;
+  color: var(--text-secondary);
 }
 
 .auth-badge {
-  @apply inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-cyan-500/20 text-cyan-300;
+  @apply inline-flex items-center px-3 py-1 text-xs font-medium rounded-full;
+  background: rgba(0, 168, 132, 0.1);
+  color: var(--accent-light);
+  border: 1px solid rgba(0, 168, 132, 0.15);
 }
 
 .auth-btn {
-  @apply w-full bg-cyan-500 text-white rounded-lg py-2.5 font-medium
-  hover:bg-cyan-600 focus:ring-2 focus:ring-cyan-500;
+  @apply w-full rounded-xl py-2.5 font-semibold transition-all duration-200;
+  background: var(--accent);
+  color: white;
+}
+
+.auth-btn:hover {
+  background: var(--accent-light);
+  transform: translateY(-1px);
 }
 
 .auth-link {
-  @apply px-4 py-2 inline-block bg-cyan-500/10 rounded-lg text-cyan-400
-  hover:text-cyan-500 text-sm transition-colors;
+  @apply px-4 py-2 inline-block rounded-xl text-sm transition-all duration-200;
+  background: rgba(0, 168, 132, 0.08);
+  color: var(--accent-light);
+  border: 1px solid rgba(0, 168, 132, 0.1);
+}
+
+.auth-link:hover {
+  background: rgba(0, 168, 132, 0.15);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
 }

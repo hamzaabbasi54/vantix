@@ -9,36 +9,27 @@ function ChatHeader() {
   const isOnline = onlineUsers.includes(selectedUser._id);
 
   useEffect(() => {
-    const handleEscKey = (event) => {
-      if (event.key === "Escape") setSelectedUser(null);
-    };
-
+    const handleEscKey = (event) => { if (event.key === "Escape") setSelectedUser(null); };
     window.addEventListener("keydown", handleEscKey);
-
-    // cleanup function
     return () => window.removeEventListener("keydown", handleEscKey);
   }, [setSelectedUser]);
 
   return (
-    <div
-      className="flex justify-between items-center bg-slate-800/50 border-b
-   border-slate-700/50 max-h-[84px] px-6 flex-1"
-    >
+    <div className="flex justify-between items-center glass-surface max-h-[68px] px-5 py-3.5" style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: 0 }}>
       <div className="flex items-center space-x-3">
-        <div className={`avatar ${isOnline ? "online" : "offline"}`}>
-          <div className="w-12 rounded-full">
-            <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.fullName} />
+        <div className="relative">
+          <div className="size-9 rounded-full overflow-hidden" style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.08)' }}>
+            <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.fullName} className="w-full h-full object-cover" />
           </div>
+          {isOnline && <span className="absolute bottom-0 right-0 online-dot !size-2" />}
         </div>
-
         <div>
-          <h3 className="text-slate-200 font-medium">{selectedUser.fullName}</h3>
-          <p className="text-slate-400 text-sm">{isOnline ? "Online" : "Offline"}</p>
+          <h3 className="font-semibold text-sm" style={{ color: '#E9EDEF' }}>{selectedUser.fullName}</h3>
+          <p className="text-xs" style={{ color: isOnline ? '#00A884' : 'rgba(233,237,239,0.25)' }}>{isOnline ? "Online" : "Offline"}</p>
         </div>
       </div>
-
-      <button onClick={() => setSelectedUser(null)}>
-        <XIcon className="w-5 h-5 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer" />
+      <button onClick={() => setSelectedUser(null)} className="size-7 flex items-center justify-center rounded-lg transition-all duration-200" style={{ color: 'rgba(233,237,239,0.3)' }}>
+        <XIcon className="w-4 h-4" />
       </button>
     </div>
   );
