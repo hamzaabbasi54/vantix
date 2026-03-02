@@ -38,7 +38,7 @@ function ChatsList() {
               {/* Unread badge */}
               {unread > 0 && (
                 <div className="min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-[11px] font-bold text-white" style={{ background: '#00A884' }}>
-                  {unread > 99 ? "99+" : unread}
+                  {unread > 5 ? "5+" : unread}
                 </div>
               )}
             </div>
