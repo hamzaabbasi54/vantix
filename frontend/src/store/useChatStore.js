@@ -80,7 +80,7 @@ export const useChatStore = create((set, get) => ({
     } catch (error) {
       // remove optimistic message on failure
       set({ messages: messages });
-      toast.error(error.response?.data?.message || "Something went wrong");
+      toast.error(error.response?.data?.message || error.response?.data?.error || "Something went wrong");
     }
   },
 

@@ -24,12 +24,18 @@ function ChatsList() {
           onClick={() => setSelectedUser(chat)}
         >
           <div className="flex items-center gap-3">
-            <div className={`avatar ${onlineUsers.includes(chat._id) ? "online" : "offline"}`}>
-              <div className="size-12 rounded-full">
-                <img src={chat.profilePic || "/avatar.png"} alt={chat.fullName} />
+            <div className="relative">
+              <div className="size-12 rounded-full overflow-hidden">
+                <img src={chat.profilePic || "/avatar.png"} alt={chat.fullName} className="w-full h-full object-cover" />
               </div>
+              {onlineUsers.includes(chat._id) && (
+                <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-gray-900" />
+              )}
             </div>
-            <h4 className="text-slate-200 font-medium truncate">{chat.fullName}</h4>
+            <div>
+              <h4 className="text-slate-200 font-medium truncate">{chat.fullName}</h4>
+              <p className="text-xs text-slate-400">{onlineUsers.includes(chat._id) ? "Online" : "Offline"}</p>
+            </div>
           </div>
         </div>
       ))}
