@@ -19,7 +19,7 @@ function ChatHeader() {
       <div className="flex items-center space-x-3">
         <div className="relative">
           <div className="size-9 rounded-full overflow-hidden" style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.08)' }}>
-            <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.fullName} className="w-full h-full object-cover" />
+            <img src={selectedUser.profilePicture || "/avatar.png"} alt={selectedUser.fullName} className="w-full h-full object-cover" />
           </div>
           {isOnline && <span className="absolute bottom-0 right-0 online-dot !size-2" />}
         </div>

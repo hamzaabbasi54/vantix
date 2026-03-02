@@ -29,7 +29,7 @@ function ProfileHeader() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <button className="size-11 rounded-full overflow-hidden relative group transition-all duration-300" style={{ boxShadow: '0 0 0 2px rgba(0,168,132,0.25)' }} onClick={() => fileInputRef.current.click()}>
-              <img src={selectedImg || authUser.profilePic || "/avatar.png"} alt="User" className="size-full object-cover" />
+              <img src={selectedImg || authUser.profilePicture || "/avatar.png"} alt="User" className="size-full object-cover" />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                 <span className="text-white text-xs">Change</span>
               </div>

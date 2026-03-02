@@ -20,7 +20,7 @@ function ChatsList() {
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="size-10 rounded-full overflow-hidden" style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06)' }}>
-                <img src={chat.profilePic || "/avatar.png"} alt={chat.fullName} className="w-full h-full object-cover" />
+                <img src={chat.profilePicture || "/avatar.png"} alt={chat.fullName} className="w-full h-full object-cover" />
               </div>
               {onlineUsers.includes(chat._id) && <span className="absolute bottom-0 right-0 online-dot" />}
             </div>
