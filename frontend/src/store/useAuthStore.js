@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
-import {io} from "socket.io-client";
+import { io } from "socket.io-client";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:3000" : "/";
 export const useAuthStore = create((set, get) => ({
@@ -17,7 +17,7 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.get("/auth/check");
             set({ authUser: res.data });
-             get().connectSocket();
+            get().connectSocket();
         } catch (error) {
             console.log("Error in authCheck:", error);
             set({ authUser: null });
@@ -33,7 +33,7 @@ export const useAuthStore = create((set, get) => ({
             set({ authUser: res.data });
 
             toast.success("Account created successfully!");
-               get().connectSocket();
+            get().connectSocket();
         } catch (error) {
             toast.error(error.response.data.message);
         } finally {
@@ -48,7 +48,7 @@ export const useAuthStore = create((set, get) => ({
 
             toast.success("Logged in successfully");
 
-               get().connectSocket();
+            get().connectSocket();
         } catch (error) {
             toast.error(error.response.data.message);
         } finally {
@@ -60,7 +60,7 @@ export const useAuthStore = create((set, get) => ({
             await axiosInstance.post("/auth/logout");
             set({ authUser: null });
             toast.success("Logged out successfully");
-               get().disconnectSocket();
+            get().disconnectSocket();
         } catch (error) {
             toast.error("Error logging out");
             console.log("Logout error:", error);
@@ -76,23 +76,47 @@ export const useAuthStore = create((set, get) => ({
             toast.error(error.response.data.message);
         }
     },
-    connectSocket:()=>{
-        const {authUser} = get();
-        if(!authUser || get().socket?.connected){
+    connectSocket: () => {
+        const { authUser } = get();
+        if (!authUser || get().socket?.connected) {
             return;
         }
-        const socket = io(BASE_URL,{withCredentials:true});
-        set({socket});
+        const socket = io(BASE_URL, { withCredentials: true });
+        set({ socket });
 
-        socket.on("getOnlineUsers",(userIds)=>{
-            set({onlineUsers:userIds});
+        socket.on("getOnlineUsers", (userIds) => {
+            set({ onlineUsers: userIds });
+        });
+
+        // Global listener: increment unread when no chat is open or msg is from a different user
+        socket.on("newMessage", async (newMessage) => {
+            const { useChatStore } = await import("./useChatStore");
+            const chatStore = useChatStore.getState();
+            const selectedUser = chatStore.selectedUser;
+
+            // If no chat is selected, or message is from someone other than the selected user
+            if (!selectedUser || newMessage.senderId !== selectedUser._id) {
+                const unreadCounts = chatStore.unreadCounts;
+                const senderId = newMessage.senderId;
+                useChatStore.setState({
+                    unreadCounts: {
+                        ...unreadCounts,
+                        [senderId]: (unreadCounts[senderId] || 0) + 1,
+                    },
+                });
+            }
+        });
+
+        // Fetch unread counts on connect
+        import("./useChatStore").then(({ useChatStore }) => {
+            useChatStore.getState().fetchUnreadCounts();
         });
     },
-    disconnectSocket:()=>{
-        const {socket} = get();
-        if(socket){
+    disconnectSocket: () => {
+        const { socket } = get();
+        if (socket) {
             socket.disconnect();
-            set({socket:null});  
+            set({ socket: null });
         }
     }
 })) 

@@ -50,7 +50,6 @@ export const sendMessage = async (req, res) => {
 
         let imageUrl;
         if (image) {
-            // upload base64 image to cloudinary
             const uploadResponse = await cloudinary.uploader.upload(image);
             imageUrl = uploadResponse.secure_url;
         }
@@ -80,7 +79,6 @@ export const getChatPartners = async (req, res) => {
     try {
         const loggedInUserId = req.user._id;
 
-        // find all the messages where the logged-in user is either sender or receiver
         const messages = await Message.find({
             $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
         });
@@ -100,6 +98,47 @@ export const getChatPartners = async (req, res) => {
         res.status(200).json(chatPartners);
     } catch (error) {
         console.error("Error in getChatPartners: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// Get unread message counts grouped by sender
+export const getUnreadCounts = async (req, res) => {
+    try {
+        const myId = req.user._id;
+
+        const unreadCounts = await Message.aggregate([
+            { $match: { receiverId: myId, read: false } },
+            { $group: { _id: "$senderId", count: { $sum: 1 } } },
+        ]);
+
+        // Convert to { senderId: count } map
+        const countsMap = {};
+        unreadCounts.forEach((item) => {
+            countsMap[item._id.toString()] = item.count;
+        });
+
+        res.status(200).json(countsMap);
+    } catch (error) {
+        console.log("Error in getUnreadCounts: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// Mark all messages from a sender as read
+export const markAsRead = async (req, res) => {
+    try {
+        const myId = req.user._id;
+        const { id: senderId } = req.params;
+
+        await Message.updateMany(
+            { senderId, receiverId: myId, read: false },
+            { $set: { read: true } }
+        );
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.log("Error in markAsRead: ", error.message);
         res.status(500).json({ error: "Internal server error" });
     }
 };
