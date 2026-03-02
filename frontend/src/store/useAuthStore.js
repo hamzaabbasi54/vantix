@@ -4,6 +4,11 @@ import { axiosInstance } from "../lib/axios";
 import { io } from "socket.io-client";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:3000" : "/";
+
+// We store a reference to getSelectedUser so the socket listener can check it synchronously
+let _getSelectedUser = () => null;
+export const setSelectedUserGetter = (fn) => { _getSelectedUser = fn; };
+
 export const useAuthStore = create((set, get) => ({
 
     authUser: null,
@@ -12,6 +17,7 @@ export const useAuthStore = create((set, get) => ({
     isLoggingIn: false,
     socket: null,
     onlineUsers: [],
+    unreadCounts: {},
 
     checkAuth: async () => {
         try {
@@ -31,7 +37,6 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.post("/auth/signup", data);
             set({ authUser: res.data });
-
             toast.success("Account created successfully!");
             get().connectSocket();
         } catch (error) {
@@ -45,9 +50,7 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.post("/auth/login", data);
             set({ authUser: res.data });
-
             toast.success("Logged in successfully");
-
             get().connectSocket();
         } catch (error) {
             toast.error(error.response.data.message);
@@ -58,7 +61,7 @@ export const useAuthStore = create((set, get) => ({
     logout: async () => {
         try {
             await axiosInstance.post("/auth/logout");
-            set({ authUser: null });
+            set({ authUser: null, unreadCounts: {} });
             toast.success("Logged out successfully");
             get().disconnectSocket();
         } catch (error) {
@@ -76,6 +79,29 @@ export const useAuthStore = create((set, get) => ({
             toast.error(error.response.data.message);
         }
     },
+
+    // ── Unread Counts ──
+    fetchUnreadCounts: async () => {
+        try {
+            const res = await axiosInstance.get("/messages/unread-counts");
+            set({ unreadCounts: res.data });
+        } catch (error) {
+            console.log("Error fetching unread counts:", error);
+        }
+    },
+
+    markAsRead: async (userId) => {
+        try {
+            await axiosInstance.put(`/messages/mark-read/${userId}`);
+            const { unreadCounts } = get();
+            const updated = { ...unreadCounts };
+            delete updated[userId];
+            set({ unreadCounts: updated });
+        } catch (error) {
+            console.log("Error marking as read:", error);
+        }
+    },
+
     connectSocket: () => {
         const { authUser } = get();
         if (!authUser || get().socket?.connected) {
@@ -88,17 +114,14 @@ export const useAuthStore = create((set, get) => ({
             set({ onlineUsers: userIds });
         });
 
-        // Global listener: increment unread when no chat is open or msg is from a different user
-        socket.on("newMessage", async (newMessage) => {
-            const { useChatStore } = await import("./useChatStore");
-            const chatStore = useChatStore.getState();
-            const selectedUser = chatStore.selectedUser;
-
-            // If no chat is selected, or message is from someone other than the selected user
+        // Global real-time unread counter
+        socket.on("newMessage", (newMessage) => {
+            const selectedUser = _getSelectedUser();
+            // Only increment if user does NOT have the sender's chat open
             if (!selectedUser || newMessage.senderId !== selectedUser._id) {
-                const unreadCounts = chatStore.unreadCounts;
+                const { unreadCounts } = get();
                 const senderId = newMessage.senderId;
-                useChatStore.setState({
+                set({
                     unreadCounts: {
                         ...unreadCounts,
                         [senderId]: (unreadCounts[senderId] || 0) + 1,
@@ -107,11 +130,10 @@ export const useAuthStore = create((set, get) => ({
             }
         });
 
-        // Fetch unread counts on connect
-        import("./useChatStore").then(({ useChatStore }) => {
-            useChatStore.getState().fetchUnreadCounts();
-        });
+        // Fetch initial unread counts
+        get().fetchUnreadCounts();
     },
+
     disconnectSocket: () => {
         const { socket } = get();
         if (socket) {
@@ -119,4 +141,4 @@ export const useAuthStore = create((set, get) => ({
             set({ socket: null });
         }
     }
-})) 
+}));

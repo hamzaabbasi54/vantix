@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
-import { useAuthStore } from "./useAuthStore";
+import { useAuthStore, setSelectedUserGetter } from "./useAuthStore";
 
 export const useChatStore = create((set, get) => ({
   allContacts: [],
@@ -12,7 +12,6 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
-  unreadCounts: {},
 
   toggleSound: () => {
     localStorage.setItem("isSoundEnabled", !get().isSoundEnabled);
@@ -25,7 +24,7 @@ export const useChatStore = create((set, get) => ({
     set({ selectedUser: user });
     // Mark messages as read when selecting a user
     if (user) {
-      get().markAsRead(user._id);
+      useAuthStore.getState().markAsRead(user._id);
     }
   },
 
@@ -90,29 +89,6 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  // Unread counts
-  fetchUnreadCounts: async () => {
-    try {
-      const res = await axiosInstance.get("/messages/unread-counts");
-      set({ unreadCounts: res.data });
-    } catch (error) {
-      console.log("Error fetching unread counts:", error);
-    }
-  },
-
-  markAsRead: async (userId) => {
-    try {
-      await axiosInstance.put(`/messages/mark-read/${userId}`);
-      // Clear the unread count for this user
-      const { unreadCounts } = get();
-      const updated = { ...unreadCounts };
-      delete updated[userId];
-      set({ unreadCounts: updated });
-    } catch (error) {
-      console.log("Error marking as read:", error);
-    }
-  },
-
   subscribeToMessages: () => {
     const { selectedUser, isSoundEnabled } = get();
     if (!selectedUser) return;
@@ -120,20 +96,10 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
 
+    // This listener only handles messages for the CURRENTLY OPEN chat
     socket.on("newMessage", (newMessage) => {
       const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) {
-        // Message from someone else — increment unread count
-        const { unreadCounts } = get();
-        const senderId = newMessage.senderId;
-        set({
-          unreadCounts: {
-            ...unreadCounts,
-            [senderId]: (unreadCounts[senderId] || 0) + 1,
-          },
-        });
-        return;
-      }
+      if (!isMessageSentFromSelectedUser) return; // Global listener in authStore handles unread counts
 
       const currentMessages = get().messages;
       set({ messages: [...currentMessages, newMessage] });
@@ -152,3 +118,6 @@ export const useChatStore = create((set, get) => ({
     socket.off("newMessage");
   },
 }));
+
+// Register the getter so authStore's socket listener can check selectedUser synchronously
+setSelectedUserGetter(() => useChatStore.getState().selectedUser);
